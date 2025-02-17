@@ -2,9 +2,9 @@ rm -rf quickfix
 git clone --depth 1 https://github.com/quickfix/quickfix.git
 rm -rf quickfix/.git
 
-pushd quickfix
+cd quickfix
 ./configure --with-python3 --with-postgresql --with-mysql && make
-popd
+cd ..
 
 rm -rf quickfix-python/C++
 rm -rf quickfix-python/spec
