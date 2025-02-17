@@ -1,0 +1,176 @@
+name: Build wheels
+on: push
+jobs:
+  # wheels-macos:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [macos-13, macos-14]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Setup
+  #     run: |
+  #       brew install boost
+  #   - name: Build QuickFIX
+  #     run: |
+  #       tar xfz QuickFIX-1.*.tar.gz
+  #       cd QuickFIX-1.*/
+  #       ./configure --disable-shared --with-boost-include=`brew --prefix`/include --enable-unity-build --disable-test-suite --enable-skip-examples
+  #       make -j3 CXXFLAGS="-std=c++17 -g0 -O3 -fno-common -dynamic -DNDEBUG -fwrapv" LDFLAGS="-fno-common -dynamic -DNDEBUG -fwrapv"
+  #       sudo make install
+  #   - name: Unpack QuickFIX-SWIG
+  #     run: |
+  #       tar xfz QuickFIX-SWIG-1.*.tar.gz
+  #   - name: Build QuickFIX wheels
+  #     uses: pypa/cibuildwheel@v2.22.0
+  #     env:
+  #       CIBW_SKIP: cp36-* cp37-* pp37-* pp38-* pp39-* pp310-*
+  #       CXXFLAGS: -std=c++17 -g0 -O3
+  #       CIBW_BUILD_VERBOSITY: 2
+  #       CIBW_TEST_REQUIRES: pytest
+  #       CIBW_TEST_COMMAND: pytest {package}/test
+  #     with:
+  #       package-dir: ./QuickFIX-SWIG-1.37/Python
+  #   - name: Save wheels as artifacts
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: wheels-${{ matrix.os }}
+  #       path: ./wheelhouse/*.whl
+  # wheels-windows:
+  #   runs-on: windows-2019
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - arch: AMD64
+  #           platform: x64
+  #         - arch: x86
+  #           platform: Win32
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Setup MSBuild
+  #     uses: microsoft/setup-msbuild@v2
+  #   - name: Setup Boost
+  #     run: |
+  #       $Url = "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.zip"
+  #       (New-Object System.Net.WebClient).DownloadFile($Url, "$RUNNER_TEMP\boost.zip")
+  #       Expand-Archive -Path "$RUNNER_TEMP\boost.zip" -DestinationPath C:\local
+  #       Rename-Item -Path "C:\local\boost_1_87_0" -NewName "boost"
+  #   - name: Build QuickFIX
+  #     run: |
+  #       Expand-Archive -Path QuickFIX-1.37.zip -DestinationPath C:\local
+  #       Copy-Item Build.props C:\local\QuickFIX-1.37\
+  #       Copy-Item Directory.Build.props C:\local\QuickFIX-1.37\
+  #       cd C:\local\QuickFIX-1.37\
+  #       msbuild QuickFIX.vcxproj -p:Configuration="Release (static runtime)" -p:Platform=${{ matrix.platform }}
+  #       dir lib
+  #   - name: Unpack QuickFIX-SWIG
+  #     run: |
+  #       Expand-Archive -Path QuickFIX-SWIG-1.37.zip -DestinationPath .
+  #   - name: Build QuickFIX wheels
+  #     uses: pypa/cibuildwheel@v2.22.0
+  #     env:
+  #       QL_DIR: C:\local\QuickFIX-1.37
+  #       INCLUDE: C:\local\boost
+  #       QL_STATIC_RUNTIME: 1
+  #       CIBW_SKIP: cp36-* cp37-* pp37-* pp38-* pp39-*
+  #       CIBW_ARCHS_WINDOWS: ${{ matrix.arch }}
+  #       CIBW_BUILD_VERBOSITY: 2
+  #       CIBW_TEST_REQUIRES: pytest
+  #       CIBW_TEST_COMMAND: pytest {package}/test
+  #     with:
+  #       package-dir: ./QuickFIX-SWIG-1.37/Python
+  #   - name: Save wheels as artifacts
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: wheels-windows-${{ matrix.arch }}
+  #       path: ./wheelhouse/*.whl
+  wheels-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            image: manylinux
+            os: ubuntu-24.04
+          - arch: x86_64
+            image: musllinux
+            os: ubuntu-24.04
+          - arch: i686
+            image: manylinux
+            os: ubuntu-24.04
+          - arch: i686
+            image: musllinux
+            os: ubuntu-24.04
+          - arch: aarch64
+            image: manylinux
+            os: ubuntu-24.04-arm
+          - arch: aarch64
+            image: musllinux
+            os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+    steps:
+
+    - uses: actions/checkout@v4
+    - name: Clone and build QuickFIX
+      run: ./before.sh
+
+    - name: Build QuickFIX wheels
+      uses: pypa/cibuildwheel@v2.22.0
+      env:
+        CIBW_BUILD: "*-${{ matrix.image }}*"
+        CIBW_SKIP: cp36-* cp37-* pp37-* pp38-* pp39-*
+        CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_BUILD_VERBOSITY: 2
+        # CIBW_BEFORE_ALL_LINUX: ./before_all_linux.sh
+        # CIBW_ENVIRONMENT_LINUX: CXXFLAGS=${{ matrix.arch == 'i686' && '"-O0 -g0"' || '"-O3 -g0"' }} CXXQLFLAGS="-O3 -g0"
+        # CIBW_ENVIRONMENT_PASS_LINUX: CXXFLAGS CXXQLFLAGS
+        # CIBW_TEST_REQUIRES: pytest
+        # CIBW_TEST_COMMAND: pytest {package}/test
+      with:
+        package-dir: ./quickfix-python
+
+    - name: Save wheels as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: wheels-linux-${{ matrix.image }}-${{ matrix.arch }}
+        path: ./wheelhouse/*.whl
+
+  # test-publish:
+  #   runs-on: ubuntu-latest
+  #   needs: [ wheels-macos, wheels-windows, wheels-linux ]
+  #   environment: testpypi
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #   - uses: actions/download-artifact@v4
+  #   - name: Collect wheels
+  #     run: |
+  #       mkdir ./wheelhouse
+  #       cp ./wheels-*/*.whl ./wheelhouse
+  #       ls -l ./wheelhouse
+  #   - name: Publish package to TestPyPI
+  #     uses: pypa/gh-action-pypi-publish@release/v1
+  #     with:
+  #       repository-url: https://test.pypi.org/legacy/
+  #       packages-dir: ./wheelhouse
+  #       skip-existing: true
+  publish:
+    runs-on: ubuntu-latest
+    needs:  wheels-linux
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+    - uses: actions/download-artifact@v4
+    - name: Collect wheels
+      run: |
+        mkdir ./wheelhouse
+        cp ./wheels-*/*.whl ./wheelhouse
+        ls -l ./wheelhouse
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: ./wheelhouse
+        skip-existing: true
