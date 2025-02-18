@@ -1,5 +1,4 @@
-from distutils.core import setup
-from distutils.core import Extension
+from setuptools import setup, Extension
 from distutils.command.install import install
 from distutils.command.build import build
 from distutils.command.build_ext import build_ext
