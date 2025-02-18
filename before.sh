@@ -2,10 +2,10 @@ rm -rf quickfix
 git clone --depth 1 https://github.com/quickfix/quickfix.git
 rm -rf quickfix/.git
 
-apt-get update -y
-DEBIAN_FRONTEND=noninteractive apt-get install -y python3-dev python3-pip python3-venv libtool  libssl-dev swig
-apt-get clean
-echo "Config libs: ${pkg-config --libs openssl}"
+apt update -y
+DEBIAN_FRONTEND=noninteractive apt install -y python3-dev python3-pip python3-venv libtool  libssl-dev swig
+apt clean
+pkg-config --libs openssl
 
 cd quickfix
 ./bootstrap
