@@ -2,9 +2,9 @@ rm -rf quickfix
 git clone --depth 1 https://github.com/quickfix/quickfix.git
 rm -rf quickfix/.git
 
-apt update
-DEBIAN_FRONTEND=noninteractive apt install -y python3-dev python3-pip python3-venv libtool
-apt clean
+sudo apt-get update
+DEBIAN_FRONTEND=noninteractive sudo apt-get install -y python3-dev python3-pip python3-venv libtool
+sudo apt-get clean
 
 cd quickfix
 ./bootstrap
