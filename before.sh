@@ -7,6 +7,11 @@ DEBIAN_FRONTEND=noninteractive apt install -y python3-dev python3-pip python3-ve
 apt clean
 pkg-config --libs openssl
 
+yum update -y
+yum install openssl-devel swig -y
+pkg-config --libs openssl
+
+
 cd quickfix
 ./bootstrap
 ./configure --with-python3 --with-postgresql --with-mysql && make 
