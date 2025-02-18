@@ -8,7 +8,7 @@ sudo apt-get clean
 
 cd quickfix
 ./bootstrap
-./configure --with-python3 --with-postgresql --with-mysql && make
+./configure --with-python3 --with-postgresql --with-mysql && make && make install
 cd ..
 
 rm -rf quickfix-python/C++
