@@ -50,6 +50,9 @@ for key, value in cfg_vars.items():
 # with open('LICENSE') as file:
 #     license = file.read();
 
+ldflags = subprocess.getoutput("pkg-config --libs openssl").strip().split()
+extra_link_args = ldflags
+
 setup(name='quickfixpatch',
       version='11.0.0',
       py_modules=['quickfix', 'quickfixt11', 'quickfix40', 'quickfix41', 'quickfix42', 'quickfix43', 'quickfix44', 'quickfix50', 'quickfix50sp1', 'quickfix50sp2'],
@@ -64,5 +67,5 @@ setup(name='quickfixpatch',
       license='MIT',
       include_dirs=['C++'],
       cmdclass = {'build_ext': build_ext_subclass },
-      ext_modules=[Extension('_quickfix', glob.glob('C++/*.cpp'), extra_compile_args=['-std=c++17', '-Wno-deprecated', '-Wno-unused-variable', '-Wno-deprecated-declarations', '-Wno-maybe-uninitialized', '-Wno-unused-label', '-IC++/swig'], libraries=["ssl", "crypto"])],
+      ext_modules=[Extension('_quickfix', glob.glob('C++/*.cpp'), extra_compile_args=['-std=c++17', '-Wno-deprecated', '-Wno-unused-variable', '-Wno-deprecated-declarations', '-Wno-maybe-uninitialized', '-Wno-unused-label', '-IC++/swig'], extra_link_args=extra_link_args, libraries=["ssl", "crypto"])],
 )
