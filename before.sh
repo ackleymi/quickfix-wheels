@@ -17,6 +17,12 @@ cd quickfix
 ./configure --with-python3 --with-postgresql --with-mysql && make 
 cd ..
 
+
+cd quickfix/src/python
+echo "building Python interface..."
+./swig.sh
+cd ../../..
+
 rm -rf quickfix-python/C++
 rm -rf quickfix-python/spec
 rm -rf quickfix-python/quickfix*.py
